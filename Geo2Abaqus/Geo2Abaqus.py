@@ -230,19 +230,20 @@ if Length < PR_length:
     # If the length is shorter than the polycrystalline region, then the length 
     # is set to be the length of polycrystalline region plus double offset
     Length = (PR_length) + 2*offset_x
-    print('The length of the base shell is short and have been set to \
-           be the length of polycrystalline region plus double offset')
+    print('The length of the base shell is short and have been set to be the length of polycrystalline region plus double offset')
 if Width < PR_width:
     # If the width is shorter than the polycrystalline region, then the width
     # is set to be the width of polycrystalline region plus double offset
     Width = (PR_width) + 2*offset_y
-    print('The width of the base shell is short and have been set to \
-           be the width of polycrystalline region plus double offset')
-Point_1 = [coord_x_min - offset_x                 ,coord_y_min - offset_y                ,0]
-Point_2 = [Point_1[0] + Length                    ,Point_1[1]                            ,0]
-Point_3 = [Point_2[0]                             ,Point_2[1] + Width                    ,0]
-Point_4 = [Point_3[0] - Length                    ,Point_3[1]                            ,0]
-Point_5 = [Point_4[0]                             ,Point_4[1] - (Width - Crack_width)/2  ,0]
+    print('The width of the base shell is short and have been set to be the width of polycrystalline region plus double offset')
+# ********************************************************************** #
+#                          Create the base shell                         #
+# ********************************************************************** #
+Point_1 = [coord_x_min - offset_x                 , coord_y_min - offset_y               ,0]
+Point_2 = [Point_1[0] + Length                    , Point_1[1]                           ,0]
+Point_3 = [Point_2[0]                             , Point_2[1] + Width                   ,0]
+Point_4 = [Point_3[0] - Length                    , Point_3[1]                           ,0]
+Point_5 = [Point_4[0]                             , Point_4[1] - (Width - Crack_width)/2 ,0]
 Point_6 = [Point_5[0] + Crack_length-Crack_width  , Point_5[1]                           ,0]
 Point_7 = [Point_6[0] + Crack_width               , Point_6[1] - Crack_width/2.0         ,0]
 Point_8 = [Point_7[0] - Crack_width               , Point_7[1] - Crack_width/2.0         ,0]
@@ -265,66 +266,72 @@ mypart.BaseShell(sketch=sketch_base)
 
 # ********************************************************************** #
 #       Create the grain boundaries by partition the base shell          #
+#                    grain boundaries obtained above
 # ********************************************************************** #
-# grain boundaries obtained above
-# Create the grain boundraies based on the straight edge
-# ********************************************************************** #
+
+# ********Create the grain boundraies based on the straight edge******** #
 print('Create the grain boundaries by straight edges')
 mypart = myModel.parts['Part-1']
 Sketch_GB = myModel.ConstrainedSketch(name='__profile__', sheetSize=500.0, gridSpacing=10)
 Sketch_GB.setPrimaryObject(option=SUPERIMPOSE)
 mypart.projectReferencesOntoSketch(sketch=Sketch_GB, filter=COPLANAR_EDGES)
 # Loop over the straight edges
-for Edge in Edges_vertices:
-    if len(Edge) == 0:
+Edges_vertices = filter(None, Edges_vertices)
+Num_lines = len(Edges_vertices)
+print('There are ' + str(Num_lines) + 'straight edges')
+for i in range(Num_lines):
+    Edge = Edges_vertices[i]
+    try:
+        # Get the coordinates of the two vertices of the edge
+        vertex_coord_1_x = vertex_coord[Edge[0]-1][0]
+        vertex_coord_1_y = vertex_coord[Edge[0]-1][1]
+        vertex_coord_2_x = vertex_coord[Edge[1]-1][0]
+        vertex_coord_2_y = vertex_coord[Edge[1]-1][1]
+        # Create the sketch of the grain boundary by straight edge
+        Sketch_GB.Line(point1=(vertex_coord_1_x,vertex_coord_1_y), point2=(vertex_coord_2_x,vertex_coord_2_y))
+    except:
+        print(Edge)
         continue
-    else:
-        try:
-            # Get the coordinates of the two vertices of the edge
-            vertex_coord_1_x = vertex_coord[Edge[0]-1][0]
-            vertex_coord_1_y = vertex_coord[Edge[0]-1][1]
-            vertex_coord_2_x = vertex_coord[Edge[1]-1][0]
-            vertex_coord_2_y = vertex_coord[Edge[1]-1][1]
-            # Create the sketch of the grain boundary by straight edge
-            Sketch_GB.Line(point1=(vertex_coord_1_x,vertex_coord_1_y), point2=(vertex_coord_2_x,vertex_coord_2_y))
-        except:
-            print(Edge)
-            continue
-# ********************************************************************** #
-# Create the grain boundraies based on the curved edge
-# ********************************************************************** #
+    milestone('Creating straight edge',i+1/Num_lines)
+        
+# *********Create the grain boundraies based on the curved edge********* #
 print('Create the grain boundraies based on the curved edge')
 iter = 0
 # Loop over the curved edges
-for Spline_vertices in Splines_vertices:
-    if len(Spline_vertices) == 0:
-        continue
-    else:
-        points_x = []
-        points_y = []
-        # Loop over the vertices of the spline
-        for Spline_vertex in Spline_vertices:
-            # Get the coordinates of the vertex and append to the string
-            Spline_vertex_x = vertex_coord[Spline_vertex-1][0]
-            Spline_vertex_y = vertex_coord[Spline_vertex-1][1]
-            points_x.append(Spline_vertex_x)
-            points_y.append(Spline_vertex_y)
-        try:
-            Sketch_GB.Spline(points=zip(points_x,points_y))
-            iter = iter + 1
-            # if iter > 500:
-            #     break
-        except:
-            print(Spline_vertices)
-            print(points_x)
-            print(points_y)
+Splines_vertices = filter(None, Splines_vertices)
+Num_lines = len(Splines_vertices)
+print('There are ' + str(Num_lines) + 'curved edges')
+for i in range(Num_lines):
+    Spline_vertices = Splines_vertices[i]
+    points_x = []
+    points_y = []
+    # Loop over the vertices of the spline
+    for Spline_vertex in Spline_vertices:
+        # Get the coordinates of the vertex and append to the string
+        Spline_vertex_x = vertex_coord[Spline_vertex-1][0]
+        Spline_vertex_y = vertex_coord[Spline_vertex-1][1]
+        points_x.append(Spline_vertex_x)
+        points_y.append(Spline_vertex_y)
+    try:
+        Sketch_GB.Spline(points=zip(points_x,points_y))
+        iter = iter + 1
+        milestone('Creating curved edge',i+1/Num_lines)
+        # if iter > 500:
+        #     break
+    except:
+        print(Spline_vertices)
+        print(points_x)
+        print(points_y)
+    
 
 f = mypart.faces
 pickedFaces = f.getSequenceFromMask(mask=('[#1 ]', ), )
 e1, d2 = mypart.edges, mypart.datums
+print('Partitioning the base shell')
 mypart.PartitionFaceBySketch(faces=pickedFaces, sketch=Sketch_GB)
 Sketch_GB.unsetPrimaryObject()
 
 session.viewports['Viewport: 1'].setValues(displayedObject=mypart)
 del myModel.sketches['__profile__']
+print('Successfully created the model')
 # ********************************************************************** #
