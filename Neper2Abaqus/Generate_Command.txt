@@ -1,0 +1,4 @@
+#Generate tess file
+neper -T -n from_morpho -id ggtest -dim 2 -morpho "diameq:dirac(0.25),1-sphericity:lognormal(0.130,0.03)"
+# Generate picture
+neper -V nfrom_morpho-idggtest.tess -print Grain21diaeq025sph013
