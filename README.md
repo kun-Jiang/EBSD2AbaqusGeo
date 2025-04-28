@@ -16,4 +16,4 @@ This is a example of Single-Edge notched tensile specimen with textured region l
 ![aachen example](Geo2Abaqus/Voronoi_Crack.png)
 
 A compact tension (CT) specimen with a textured region, where each grain is assigned default material properties. The geometric features of the grains are associated with a defined set.
-![CT_specimen](CT_Specimen\CT_Crack.png)
+![CT_specimen](CT_Specimen/CT_Crack.png)
